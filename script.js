@@ -9,7 +9,8 @@ const nextMonth = document.getElementById("nextMonth");
 const todayBtn = document.getElementById("todayBtn");
 const backBtn = document.getElementById("backBtn");
 
-const dateInput = document.getElementById("dateInput");
+const dateTitle = document.getElementById("dateTitle");
+const weekdayTitle = document.getElementById("weekdayTitle");
 const moodInput = document.getElementById("moodInput");
 const titleInput = document.getElementById("titleInput");
 const contentInput = document.getElementById("contentInput");
@@ -24,24 +25,31 @@ const arm = document.getElementById("arm");
 const youtubePlayer = document.getElementById("youtubePlayer");
 const savedMark = document.getElementById("savedMark");
 
+let selectedDate = "";
 let currentVideoId = null;
+
 const now = new Date();
 let calendarYear = now.getFullYear();
 let calendarMonth = now.getMonth();
 
+function pad(number) {
+  return String(number).padStart(2, "0");
+}
+
 function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 function makeDateString(year, month, day) {
-  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return `${year}-${pad(month + 1)}-${pad(day)}`;
 }
 
 function getEntries() {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
 }
 
 function saveEntries(entries) {
@@ -66,81 +74,90 @@ function extractYouTubeId(url) {
   return null;
 }
 
-function showCalendar() {
-  stopMusic();
-  diaryView.classList.add("hidden");
-  calendarView.classList.remove("hidden");
-  renderCalendar();
-}
-
-function openDiary(dateString) {
-  dateInput.value = dateString;
-  calendarView.classList.add("hidden");
-  diaryView.classList.remove("hidden");
-  loadEntry();
-}
-
 function renderCalendar() {
   const entries = getEntries();
-  const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
-  const lastDate = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const firstDay = new Date(calendarYear, calendarMonth, 1);
+  const start = new Date(calendarYear, calendarMonth, 1 - firstDay.getDay());
   const todayString = formatDate(new Date());
 
-  monthTitle.textContent = `${calendarYear}. ${String(calendarMonth + 1).padStart(2, "0")}`;
+  monthTitle.textContent = `${calendarYear}. ${pad(calendarMonth + 1)}`;
   calendarGrid.innerHTML = "";
 
-  for (let i = 0; i < firstDay; i++) {
-    const empty = document.createElement("div");
-    empty.className = "day empty";
-    calendarGrid.appendChild(empty);
-  }
+  for (let i = 0; i < 42; i++) {
+    const cellDate = new Date(start);
+    cellDate.setDate(start.getDate() + i);
 
-  for (let day = 1; day <= lastDate; day++) {
-    const dateString = makeDateString(calendarYear, calendarMonth, day);
+    const dateString = formatDate(cellDate);
     const entry = entries[dateString];
+    const isCurrentMonth = cellDate.getMonth() === calendarMonth;
+
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "day";
+    button.className = "calendar-day";
+
+    if (!isCurrentMonth) button.classList.add("other-month");
     if (dateString === todayString) button.classList.add("today");
 
     const number = document.createElement("span");
     number.className = "day-number";
-    number.textContent = day;
+    number.textContent = cellDate.getDate();
     button.appendChild(number);
 
     if (entry) {
-      const title = document.createElement("span");
-      title.className = "entry-title";
-      title.textContent = entry.title || entry.mood || "record";
-      button.appendChild(title);
+      const preview = document.createElement("div");
+      preview.className = "entry-preview";
 
-      const mark = document.createElement("span");
-      mark.className = "entry-mark";
-      button.appendChild(mark);
+      const title = document.createElement("strong");
+      title.textContent = entry.title || "기록";
+
+      const mood = document.createElement("span");
+      mood.textContent = entry.mood || "";
+
+      preview.append(title, mood);
+      button.appendChild(preview);
+
+      if (entry.youtube) {
+        const dot = document.createElement("span");
+        dot.className = "song-dot";
+        button.appendChild(dot);
+      }
     }
 
-    button.addEventListener("click", () => openDiary(dateString));
+    button.addEventListener("click", () => {
+      calendarYear = cellDate.getFullYear();
+      calendarMonth = cellDate.getMonth();
+      openDiary(dateString);
+    });
+
     calendarGrid.appendChild(button);
   }
 }
 
-function stopMusic() {
-  youtubePlayer.innerHTML = "";
-  record.classList.remove("playing");
-  arm.classList.remove("playing");
+function setDiaryDate(dateString) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  const weekday = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][date.getDay()];
+
+  dateTitle.textContent = `${year}. ${pad(month)}. ${pad(day)}`;
+  weekdayTitle.textContent = weekday;
 }
 
-function updateMusic() {
-  currentVideoId = extractYouTubeId(youtubeInput.value.trim());
-  playBtn.disabled = !currentVideoId;
-  stopBtn.disabled = !currentVideoId;
-  stopMusic();
+function openDiary(dateString) {
+  selectedDate = dateString;
+  setDiaryDate(dateString);
+  loadEntry();
 
-  if (currentVideoId) {
-    recordPhoto.style.backgroundImage = `url("https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg")`;
-  } else {
-    recordPhoto.style.backgroundImage = "none";
-  }
+  calendarView.hidden = true;
+  diaryView.hidden = false;
+  window.scrollTo(0, 0);
+}
+
+function showCalendar() {
+  stopMusic();
+  diaryView.hidden = true;
+  calendarView.hidden = false;
+  renderCalendar();
+  window.scrollTo(0, 0);
 }
 
 function clearForm() {
@@ -154,7 +171,7 @@ function clearForm() {
 
 function loadEntry() {
   stopMusic();
-  const entry = getEntries()[dateInput.value];
+  const entry = getEntries()[selectedDate];
 
   if (!entry) {
     clearForm();
@@ -170,15 +187,16 @@ function loadEntry() {
 }
 
 function saveEntry() {
-  const date = dateInput.value;
+  if (!selectedDate) return;
+
   const title = titleInput.value.trim();
   const content = contentInput.value.trim();
   const youtube = youtubeInput.value.trim();
 
-  if (!date || (!title && !content && !youtube)) return;
+  if (!title && !content && !youtube) return;
 
   const entries = getEntries();
-  entries[date] = {
+  entries[selectedDate] = {
     mood: moodInput.value,
     title,
     content,
@@ -190,12 +208,25 @@ function saveEntry() {
 }
 
 function deleteEntry() {
-  const entries = getEntries();
-  if (!entries[dateInput.value]) return;
+  if (!selectedDate) return;
 
-  delete entries[dateInput.value];
+  const entries = getEntries();
+  delete entries[selectedDate];
   saveEntries(entries);
   clearForm();
+}
+
+function updateMusic() {
+  currentVideoId = extractYouTubeId(youtubeInput.value.trim());
+  playBtn.disabled = !currentVideoId;
+  stopBtn.disabled = !currentVideoId;
+  stopMusic();
+
+  if (currentVideoId) {
+    recordPhoto.style.backgroundImage = `url("https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg")`;
+  } else {
+    recordPhoto.style.backgroundImage = "none";
+  }
 }
 
 function playMusic() {
@@ -212,6 +243,12 @@ function playMusic() {
 
   record.classList.add("playing");
   arm.classList.add("playing");
+}
+
+function stopMusic() {
+  youtubePlayer.innerHTML = "";
+  record.classList.remove("playing");
+  arm.classList.remove("playing");
 }
 
 prevMonth.addEventListener("click", () => {
@@ -242,19 +279,14 @@ todayBtn.addEventListener("click", () => {
 backBtn.addEventListener("click", showCalendar);
 saveBtn.addEventListener("click", saveEntry);
 deleteBtn.addEventListener("click", deleteEntry);
-dateInput.addEventListener("change", loadEntry);
-youtubeInput.addEventListener("input", updateMusic);
 playBtn.addEventListener("click", playMusic);
 stopBtn.addEventListener("click", stopMusic);
+youtubeInput.addEventListener("input", updateMusic);
 
-[titleInput, contentInput, moodInput].forEach(element => {
+[titleInput, contentInput, moodInput, youtubeInput].forEach(element => {
   element.addEventListener("input", () => {
     savedMark.textContent = "";
   });
-});
-
-youtubeInput.addEventListener("input", () => {
-  savedMark.textContent = "";
 });
 
 renderCalendar();

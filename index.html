@@ -8,33 +8,49 @@
 </head>
 <body>
   <main class="app">
-    <section id="calendarView" class="view calendar-view">
-      <header class="topbar">
-        <h1>mood diary</h1>
-        <button id="todayBtn" class="text-btn" type="button">today</button>
+    <!-- 첫 화면 : 캘린더 -->
+    <section id="calendarView" class="calendar-page">
+      <header class="calendar-header">
+        <div>
+          <p class="brand">MOOD DIARY</p>
+          <h1 id="monthTitle">2026. 09</h1>
+        </div>
+
+        <nav class="calendar-nav" aria-label="달력 이동">
+          <button id="prevMonth" type="button" aria-label="이전 달">←</button>
+          <button id="todayBtn" type="button">TODAY</button>
+          <button id="nextMonth" type="button" aria-label="다음 달">→</button>
+        </nav>
       </header>
 
-      <div class="calendar-head">
-        <button id="prevMonth" class="arrow-btn" type="button" aria-label="이전 달">←</button>
-        <h2 id="monthTitle"></h2>
-        <button id="nextMonth" class="arrow-btn" type="button" aria-label="다음 달">→</button>
+      <div class="calendar-shell">
+        <div class="week-row" aria-hidden="true">
+          <span class="sun">SUN</span>
+          <span>MON</span>
+          <span>TUE</span>
+          <span>WED</span>
+          <span>THU</span>
+          <span>FRI</span>
+          <span class="sat">SAT</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
       </div>
-
-      <div class="weekdays" aria-hidden="true">
-        <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
-      </div>
-      <div id="calendarGrid" class="calendar-grid"></div>
     </section>
 
-    <section id="diaryView" class="view diary-view hidden">
-      <header class="topbar">
-        <button id="backBtn" class="text-btn" type="button">← calendar</button>
-        <input id="dateInput" type="date" aria-label="기록 날짜">
+    <!-- 날짜를 선택한 뒤에만 보이는 다이어리 -->
+    <section id="diaryView" class="diary-page" hidden>
+      <header class="diary-header">
+        <button id="backBtn" class="back-btn" type="button">←</button>
+        <div class="selected-date">
+          <strong id="dateTitle"></strong>
+          <span id="weekdayTitle"></span>
+        </div>
+        <button id="saveBtn" class="save-btn" type="button">SAVE</button>
       </header>
 
-      <section class="paper">
-        <div class="writing">
-          <div class="meta">
+      <div class="diary-sheet">
+        <section class="writing-area">
+          <div class="writing-meta">
             <select id="moodInput" aria-label="오늘의 기분">
               <option value="평온">평온</option>
               <option value="행복">행복</option>
@@ -45,11 +61,11 @@
             <span id="savedMark"></span>
           </div>
 
-          <input id="titleInput" class="title" type="text" maxlength="40" placeholder="제목">
+          <input id="titleInput" class="diary-title" type="text" maxlength="40" placeholder="제목">
           <textarea id="contentInput" placeholder="오늘을 적어보세요."></textarea>
-        </div>
+        </section>
 
-        <aside class="music">
+        <aside class="music-area">
           <div class="turntable" aria-label="LP 플레이어">
             <div class="record" id="record">
               <div class="record-photo" id="recordPhoto"></div>
@@ -58,20 +74,19 @@
             <div class="arm" id="arm"></div>
           </div>
 
-          <input id="youtubeInput" type="url" placeholder="YouTube link" aria-label="유튜브 링크">
-
-          <div class="controls">
-            <button id="playBtn" type="button" disabled>play</button>
-            <button id="stopBtn" type="button" disabled>stop</button>
+          <div class="music-form">
+            <input id="youtubeInput" type="url" placeholder="YouTube link" aria-label="유튜브 링크">
+            <div class="music-controls">
+              <button id="playBtn" type="button" disabled>PLAY</button>
+              <button id="stopBtn" type="button" disabled>STOP</button>
+            </div>
           </div>
+
           <div id="youtubePlayer" class="hidden-player"></div>
         </aside>
-      </section>
+      </div>
 
-      <footer class="bottom-bar">
-        <button id="deleteBtn" class="text-btn subtle" type="button">delete</button>
-        <button id="saveBtn" class="text-btn" type="button">save</button>
-      </footer>
+      <button id="deleteBtn" class="delete-btn" type="button">DELETE</button>
     </section>
   </main>
 
