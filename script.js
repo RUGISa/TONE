@@ -76,31 +76,37 @@ function extractYouTubeId(url) {
 
 function renderCalendar() {
   const entries = getEntries();
-  const firstDay = new Date(calendarYear, calendarMonth, 1);
-  const start = new Date(calendarYear, calendarMonth, 1 - firstDay.getDay());
+  const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const totalCells = firstDayIndex + daysInMonth;
+  const weekCount = Math.ceil(totalCells / 7);
   const todayString = formatDate(new Date());
 
   monthTitle.textContent = `${calendarYear}. ${pad(calendarMonth + 1)}`;
   calendarGrid.innerHTML = "";
+  calendarGrid.style.setProperty("--weeks", weekCount);
 
-  for (let i = 0; i < 42; i++) {
-    const cellDate = new Date(start);
-    cellDate.setDate(start.getDate() + i);
+  // 이번 달이 시작하기 전의 빈 칸
+  for (let i = 0; i < firstDayIndex; i++) {
+    const blank = document.createElement("div");
+    blank.className = "calendar-blank";
+    calendarGrid.appendChild(blank);
+  }
 
-    const dateString = formatDate(cellDate);
+  // 이번 달 날짜만 표시
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateString = makeDateString(calendarYear, calendarMonth, day);
     const entry = entries[dateString];
-    const isCurrentMonth = cellDate.getMonth() === calendarMonth;
 
     const button = document.createElement("button");
     button.type = "button";
     button.className = "calendar-day";
 
-    if (!isCurrentMonth) button.classList.add("other-month");
     if (dateString === todayString) button.classList.add("today");
 
     const number = document.createElement("span");
     number.className = "day-number";
-    number.textContent = cellDate.getDate();
+    number.textContent = day;
     button.appendChild(number);
 
     if (entry) {
@@ -123,13 +129,17 @@ function renderCalendar() {
       }
     }
 
-    button.addEventListener("click", () => {
-      calendarYear = cellDate.getFullYear();
-      calendarMonth = cellDate.getMonth();
-      openDiary(dateString);
-    });
-
+    button.addEventListener("click", () => openDiary(dateString));
     calendarGrid.appendChild(button);
+  }
+
+  // 마지막 주의 남는 칸
+  const usedCells = firstDayIndex + daysInMonth;
+  const blankEnd = weekCount * 7 - usedCells;
+  for (let i = 0; i < blankEnd; i++) {
+    const blank = document.createElement("div");
+    blank.className = "calendar-blank";
+    calendarGrid.appendChild(blank);
   }
 }
 
