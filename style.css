@@ -1,9 +1,9 @@
 :root {
-  --bg: #ece9e2;
-  --paper: #faf8f2;
+  --bg: #efede7;
+  --paper: #fbfaf6;
   --ink: #1d1d1b;
-  --muted: #8d8980;
-  --line: #d8d3c9;
+  --muted: #8e8a82;
+  --line: #d8d4cb;
 }
 
 * { box-sizing: border-box; }
@@ -18,91 +18,201 @@ body {
 }
 
 button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
 
-.diary {
-  width: min(1040px, calc(100% - 40px));
-  margin: 34px auto;
+.app {
+  width: min(980px, calc(100% - 40px));
+  margin: 32px auto;
 }
 
-.diary-head,
-.bottom-bar {
+.hidden { display: none !important; }
+
+.topbar {
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 20px;
 }
 
-.diary-head {
-  margin-bottom: 12px;
-}
-
-.diary-head h1 {
+.topbar h1 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 20px;
   font-weight: 400;
-  letter-spacing: .02em;
 }
 
-.diary-head input,
-.meta select {
+.text-btn,
+.arrow-btn,
+.controls button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.text-btn {
+  font-size: 13px;
+}
+
+.text-btn:hover,
+.arrow-btn:hover,
+.controls button:not(:disabled):hover {
+  opacity: .55;
+}
+
+.subtle { color: var(--muted); }
+
+/* calendar */
+.calendar-view {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.calendar-head {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  margin: 42px 0 34px;
+}
+
+.calendar-head h2 {
+  margin: 0;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  font-weight: 400;
+}
+
+.arrow-btn {
+  font-size: 18px;
+}
+
+.weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.weekdays {
+  border-bottom: 1px solid var(--line);
+}
+
+.weekdays span {
+  padding: 0 0 12px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-align: center;
+}
+
+.calendar-grid {
+  border-left: 1px solid var(--line);
+}
+
+.day {
+  position: relative;
+  min-height: 108px;
+  padding: 12px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+}
+
+.day:hover { background: rgba(255,255,255,.28); }
+.day.empty { pointer-events: none; }
+
+.day-number {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+}
+
+.day.today .day-number {
+  border-bottom: 1px solid currentColor;
+}
+
+.entry-mark {
+  position: absolute;
+  left: 12px;
+  bottom: 13px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.entry-title {
+  display: block;
+  margin-top: 13px;
+  overflow: hidden;
+  color: #6f6b64;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* diary */
+.diary-view { width: 100%; }
+
+.topbar input {
   border: 0;
   background: transparent;
   outline: none;
-}
-
-.diary-head input {
-  color: #66625b;
+  color: #68645d;
   font-size: 13px;
 }
 
 .paper {
-  min-height: 680px;
+  min-height: 650px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   background: var(--paper);
   border: 1px solid var(--line);
 }
 
 .writing {
-  padding: 44px 50px 40px;
+  padding: 42px 48px;
   border-right: 1px solid var(--line);
 }
 
 .meta {
-  height: 28px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   color: var(--muted);
   font-size: 12px;
 }
 
 .meta select {
   padding: 0;
-  cursor: pointer;
+  border: 0;
+  background: transparent;
+  outline: none;
 }
 
 .title {
   width: 100%;
-  margin: 0 0 24px;
+  margin: 0 0 22px;
   padding: 0;
   border: 0;
   background: transparent;
   outline: none;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 32px;
+  font-size: 31px;
 }
 
 .title::placeholder,
 textarea::placeholder,
-.music input::placeholder {
-  color: #b7b2a9;
-}
+.music input::placeholder { color: #b9b4ab; }
 
 textarea {
   width: 100%;
-  min-height: 500px;
+  min-height: 485px;
   padding: 0;
   resize: none;
   border: 0;
@@ -114,49 +224,59 @@ textarea {
 }
 
 .music {
-  padding: 48px 28px 34px;
-  display: flex;
-  flex-direction: column;
+  padding: 48px 28px 30px;
 }
 
 .turntable {
   position: relative;
-  width: 220px;
+  width: 214px;
   height: 220px;
-  margin: 16px auto 44px;
+  margin: 12px auto 42px;
 }
 
 .record {
   position: absolute;
-  width: 188px;
-  height: 188px;
   left: 0;
-  top: 16px;
+  top: 15px;
+  width: 184px;
+  height: 184px;
   border-radius: 50%;
   background:
-    radial-gradient(circle, #c5b8a5 0 8%, #111 8.5% 11%, #171717 11.5% 100%);
+    repeating-radial-gradient(circle at center, #151515 0 2px, #1d1d1d 3px 5px);
   box-shadow: 0 7px 16px rgba(0, 0, 0, .13);
   animation: spin 5s linear infinite;
   animation-play-state: paused;
 }
 
-.record::after {
-  content: "";
-  position: absolute;
-  inset: 13px;
-  border-radius: 50%;
-  background: repeating-radial-gradient(circle, transparent 0 6px, rgba(255,255,255,.025) 7px 8px);
-}
-
 .record.playing { animation-play-state: running; }
 
-.label {
+.record-photo {
   position: absolute;
-  width: 11px;
-  height: 11px;
+  left: 50%;
+  top: 50%;
+  width: 74px;
+  height: 74px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #c8c0b4 center / cover no-repeat;
+  overflow: hidden;
+}
+
+.record-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+}
+
+.record-hole {
+  position: absolute;
   left: 50%;
   top: 50%;
   z-index: 2;
+  width: 8px;
+  height: 8px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: var(--paper);
@@ -164,46 +284,39 @@ textarea {
 
 .arm {
   position: absolute;
-  width: 5px;
-  height: 138px;
-  right: 16px;
+  right: 14px;
   top: 5px;
+  width: 5px;
+  height: 136px;
   background: #33312e;
-  transform-origin: 50% 8px;
   transform: rotate(-18deg);
+  transform-origin: 50% 8px;
   transition: transform .25s ease;
 }
 
 .arm::before {
   content: "";
   position: absolute;
-  width: 18px;
-  height: 18px;
   top: -3px;
   left: -6px;
-  border-radius: 50%;
+  width: 18px;
+  height: 18px;
   border: 1px solid #33312e;
+  border-radius: 50%;
   background: var(--paper);
 }
 
 .arm::after {
   content: "";
   position: absolute;
-  width: 15px;
-  height: 24px;
   left: -5px;
   bottom: -5px;
+  width: 15px;
+  height: 24px;
   background: #33312e;
 }
 
 .arm.playing { transform: rotate(7deg); }
-
-.music label {
-  margin-bottom: 8px;
-  color: var(--muted);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 13px;
-}
 
 .music input {
   width: 100%;
@@ -221,43 +334,23 @@ textarea {
   margin-top: 14px;
 }
 
-.controls button,
-#saveBtn {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
 .controls button {
   color: #625f59;
   font-size: 12px;
 }
 
 .controls button:disabled {
-  opacity: .3;
   cursor: default;
+  opacity: .3;
 }
 
 .bottom-bar {
-  min-height: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 0 2px;
   border-bottom: 1px solid var(--line);
-}
-
-.bottom-bar p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-#saveBtn {
-  font-size: 13px;
-}
-
-#saveBtn:hover,
-.controls button:not(:disabled):hover {
-  text-decoration: underline;
 }
 
 .hidden-player {
@@ -271,14 +364,18 @@ textarea {
 }
 
 @media (max-width: 760px) {
-  .diary {
+  .app {
     width: min(100% - 20px, 620px);
     margin: 18px auto;
   }
 
-  .paper {
-    grid-template-columns: 1fr;
-  }
+  .calendar-head { margin: 28px 0 24px; }
+  .calendar-head h2 { font-size: 27px; }
+  .day { min-height: 75px; padding: 8px; }
+  .entry-title { display: none; }
+  .entry-mark { left: 8px; bottom: 9px; }
+
+  .paper { grid-template-columns: 1fr; }
 
   .writing {
     padding: 30px 24px;
@@ -286,15 +383,7 @@ textarea {
     border-bottom: 1px solid var(--line);
   }
 
-  textarea {
-    min-height: 380px;
-  }
-
-  .music {
-    padding: 26px 24px 30px;
-  }
-
-  .turntable {
-    margin-top: 0;
-  }
+  textarea { min-height: 360px; }
+  .music { padding: 28px 24px 32px; }
+  .turntable { margin-top: 0; }
 }

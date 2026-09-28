@@ -1,26 +1,43 @@
 const STORAGE_KEY = "moodDiaryEntries";
 
+const calendarView = document.getElementById("calendarView");
+const diaryView = document.getElementById("diaryView");
+const calendarGrid = document.getElementById("calendarGrid");
+const monthTitle = document.getElementById("monthTitle");
+const prevMonth = document.getElementById("prevMonth");
+const nextMonth = document.getElementById("nextMonth");
+const todayBtn = document.getElementById("todayBtn");
+const backBtn = document.getElementById("backBtn");
+
 const dateInput = document.getElementById("dateInput");
 const moodInput = document.getElementById("moodInput");
 const titleInput = document.getElementById("titleInput");
 const contentInput = document.getElementById("contentInput");
 const youtubeInput = document.getElementById("youtubeInput");
 const saveBtn = document.getElementById("saveBtn");
+const deleteBtn = document.getElementById("deleteBtn");
 const playBtn = document.getElementById("playBtn");
 const stopBtn = document.getElementById("stopBtn");
 const record = document.getElementById("record");
+const recordPhoto = document.getElementById("recordPhoto");
 const arm = document.getElementById("arm");
 const youtubePlayer = document.getElementById("youtubePlayer");
 const savedMark = document.getElementById("savedMark");
-const entryCount = document.getElementById("entryCount");
 
 let currentVideoId = null;
+const now = new Date();
+let calendarYear = now.getFullYear();
+let calendarMonth = now.getMonth();
 
 function formatDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function makeDateString(year, month, day) {
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function getEntries() {
@@ -49,6 +66,64 @@ function extractYouTubeId(url) {
   return null;
 }
 
+function showCalendar() {
+  stopMusic();
+  diaryView.classList.add("hidden");
+  calendarView.classList.remove("hidden");
+  renderCalendar();
+}
+
+function openDiary(dateString) {
+  dateInput.value = dateString;
+  calendarView.classList.add("hidden");
+  diaryView.classList.remove("hidden");
+  loadEntry();
+}
+
+function renderCalendar() {
+  const entries = getEntries();
+  const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+  const lastDate = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const todayString = formatDate(new Date());
+
+  monthTitle.textContent = `${calendarYear}. ${String(calendarMonth + 1).padStart(2, "0")}`;
+  calendarGrid.innerHTML = "";
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement("div");
+    empty.className = "day empty";
+    calendarGrid.appendChild(empty);
+  }
+
+  for (let day = 1; day <= lastDate; day++) {
+    const dateString = makeDateString(calendarYear, calendarMonth, day);
+    const entry = entries[dateString];
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "day";
+    if (dateString === todayString) button.classList.add("today");
+
+    const number = document.createElement("span");
+    number.className = "day-number";
+    number.textContent = day;
+    button.appendChild(number);
+
+    if (entry) {
+      const title = document.createElement("span");
+      title.className = "entry-title";
+      title.textContent = entry.title || entry.mood || "record";
+      button.appendChild(title);
+
+      const mark = document.createElement("span");
+      mark.className = "entry-mark";
+      button.appendChild(mark);
+    }
+
+    button.addEventListener("click", () => openDiary(dateString));
+    calendarGrid.appendChild(button);
+  }
+}
+
 function stopMusic() {
   youtubePlayer.innerHTML = "";
   record.classList.remove("playing");
@@ -60,11 +135,12 @@ function updateMusic() {
   playBtn.disabled = !currentVideoId;
   stopBtn.disabled = !currentVideoId;
   stopMusic();
-}
 
-function updateCount() {
-  const count = Object.keys(getEntries()).length;
-  entryCount.textContent = count ? `${count} days` : "";
+  if (currentVideoId) {
+    recordPhoto.style.backgroundImage = `url("https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg")`;
+  } else {
+    recordPhoto.style.backgroundImage = "none";
+  }
 }
 
 function clearForm() {
@@ -78,8 +154,8 @@ function clearForm() {
 
 function loadEntry() {
   stopMusic();
-
   const entry = getEntries()[dateInput.value];
+
   if (!entry) {
     clearForm();
     return;
@@ -111,8 +187,15 @@ function saveEntry() {
 
   saveEntries(entries);
   savedMark.textContent = "saved";
-  updateMusic();
-  updateCount();
+}
+
+function deleteEntry() {
+  const entries = getEntries();
+  if (!entries[dateInput.value]) return;
+
+  delete entries[dateInput.value];
+  saveEntries(entries);
+  clearForm();
 }
 
 function playMusic() {
@@ -131,18 +214,47 @@ function playMusic() {
   arm.classList.add("playing");
 }
 
+prevMonth.addEventListener("click", () => {
+  calendarMonth--;
+  if (calendarMonth < 0) {
+    calendarMonth = 11;
+    calendarYear--;
+  }
+  renderCalendar();
+});
+
+nextMonth.addEventListener("click", () => {
+  calendarMonth++;
+  if (calendarMonth > 11) {
+    calendarMonth = 0;
+    calendarYear++;
+  }
+  renderCalendar();
+});
+
+todayBtn.addEventListener("click", () => {
+  const today = new Date();
+  calendarYear = today.getFullYear();
+  calendarMonth = today.getMonth();
+  renderCalendar();
+});
+
+backBtn.addEventListener("click", showCalendar);
 saveBtn.addEventListener("click", saveEntry);
+deleteBtn.addEventListener("click", deleteEntry);
 dateInput.addEventListener("change", loadEntry);
-youtubeInput.addEventListener("change", updateMusic);
+youtubeInput.addEventListener("input", updateMusic);
 playBtn.addEventListener("click", playMusic);
 stopBtn.addEventListener("click", stopMusic);
 
-[titleInput, contentInput, moodInput, youtubeInput].forEach(element => {
+[titleInput, contentInput, moodInput].forEach(element => {
   element.addEventListener("input", () => {
     savedMark.textContent = "";
   });
 });
 
-dateInput.value = formatDate(new Date());
-loadEntry();
-updateCount();
+youtubeInput.addEventListener("input", () => {
+  savedMark.textContent = "";
+});
+
+renderCalendar();
