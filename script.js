@@ -233,7 +233,7 @@ function updateMusic() {
   stopMusic();
 
   if (currentVideoId) {
-    recordPhoto.style.backgroundImage = `url("https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg")`;
+    recordPhoto.style.backgroundImage = `url("https://i.ytimg.com/vi/${currentVideoId}/mqdefault.jpg")`;
   } else {
     recordPhoto.style.backgroundImage = "none";
   }
