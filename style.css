@@ -1,292 +1,300 @@
 :root {
-  --bg: #f4f1ea;
-  --paper: #fbfaf6;
-  --ink: #1f1f1d;
-  --muted: #87827a;
+  --bg: #ece9e2;
+  --paper: #faf8f2;
+  --ink: #1d1d1b;
+  --muted: #8d8980;
   --line: #d8d3c9;
 }
 
 * { box-sizing: border-box; }
 
+html, body { min-height: 100%; }
+
 body {
   margin: 0;
-  color: var(--ink);
   background: var(--bg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-button, input, textarea, select { font: inherit; }
-button { color: inherit; }
+button, input, textarea, select { font: inherit; color: inherit; }
 
-.topbar {
-  height: 72px;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 24px;
+.diary {
+  width: min(1040px, calc(100% - 40px));
+  margin: 34px auto;
+}
+
+.diary-head,
+.bottom-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--line);
 }
 
-.logo {
-  color: var(--ink);
-  text-decoration: none;
+.diary-head {
+  margin-bottom: 12px;
+}
+
+.diary-head h1 {
+  margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 22px;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: .02em;
 }
 
-nav { display: flex; gap: 24px; }
-.nav-link {
-  padding: 8px 0;
+.diary-head input,
+.meta select {
   border: 0;
-  border-bottom: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-}
-.nav-link.active { border-bottom-color: var(--ink); }
-
-main {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 48px 24px 80px;
+  background: transparent;
+  outline: none;
 }
 
-.page { display: none; }
-.page.active { display: block; }
+.diary-head input {
+  color: #66625b;
+  font-size: 13px;
+}
 
-.diary-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(320px, .8fr);
+.paper {
   min-height: 680px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
   background: var(--paper);
   border: 1px solid var(--line);
 }
 
-.diary-page {
-  padding: 48px 56px;
+.writing {
+  padding: 44px 50px 40px;
   border-right: 1px solid var(--line);
 }
 
-.date-row {
+.meta {
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 36px;
-}
-.date-row p { margin: 0; color: var(--muted); }
-.date-row select {
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  background: transparent;
-  padding: 6px 22px 6px 0;
-  outline: none;
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
-.title-input {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 34px;
-  outline: none;
-  margin-bottom: 26px;
-}
-.title-input::placeholder { color: #b3afa8; }
-
-textarea {
-  width: 100%;
-  min-height: 360px;
-  resize: vertical;
-  border: 0;
-  outline: none;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent 31px,
-      #e7e2d9 32px
-    );
-  color: var(--ink);
-  line-height: 32px;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 17px;
-}
-textarea::placeholder { color: #b3afa8; }
-
-.music-input {
-  margin-top: 34px;
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 16px;
-  align-items: center;
-}
-.music-input label { color: var(--muted); font-size: 14px; }
-.music-input input {
-  width: 100%;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  background: transparent;
-  padding: 10px 0;
-  outline: none;
-}
-
-.save-btn {
-  margin-top: 28px;
-  padding: 10px 22px;
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: white;
+.meta select {
+  padding: 0;
   cursor: pointer;
 }
 
-.player-panel {
-  padding: 48px 38px;
+.title {
+  width: 100%;
+  margin: 0 0 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+}
+
+.title::placeholder,
+textarea::placeholder,
+.music input::placeholder {
+  color: #b7b2a9;
+}
+
+textarea {
+  width: 100%;
+  min-height: 500px;
+  padding: 0;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 2;
+}
+
+.music {
+  padding: 48px 28px 34px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 .turntable {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  max-width: 360px;
-  margin: 0 auto;
-  background: #c6b6a0;
-  border: 1px solid #ab9c88;
   position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 16px auto 44px;
 }
 
 .record {
   position: absolute;
-  width: 72%;
-  aspect-ratio: 1;
-  left: 9%;
-  top: 14%;
+  width: 188px;
+  height: 188px;
+  left: 0;
+  top: 16px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at center,
-      #d9d0c4 0 9%,
-      #111 9.5% 12%,
-      #191919 12.5% 100%);
-  box-shadow: 0 10px 24px rgba(0,0,0,.22);
+    radial-gradient(circle, #c5b8a5 0 8%, #111 8.5% 11%, #171717 11.5% 100%);
+  box-shadow: 0 7px 16px rgba(0, 0, 0, .13);
   animation: spin 5s linear infinite;
   animation-play-state: paused;
 }
-.record.playing { animation-play-state: running; }
 
 .record::after {
   content: "";
   position: absolute;
-  inset: 10%;
+  inset: 13px;
   border-radius: 50%;
-  background: repeating-radial-gradient(circle, transparent 0 6px, rgba(255,255,255,.035) 7px 8px);
+  background: repeating-radial-gradient(circle, transparent 0 6px, rgba(255,255,255,.025) 7px 8px);
 }
 
-.record-label {
+.record.playing { animation-play-state: running; }
+
+.label {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  z-index: 1;
-  font-size: 12px;
+  width: 11px;
+  height: 11px;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--paper);
 }
 
 .arm {
   position: absolute;
-  width: 7px;
-  height: 54%;
-  right: 15%;
-  top: 9%;
-  background: #2b2b29;
-  transform-origin: top center;
+  width: 5px;
+  height: 138px;
+  right: 16px;
+  top: 5px;
+  background: #33312e;
+  transform-origin: 50% 8px;
   transform: rotate(-18deg);
-  transition: transform .3s ease;
+  transition: transform .25s ease;
 }
+
+.arm::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: -3px;
+  left: -6px;
+  border-radius: 50%;
+  border: 1px solid #33312e;
+  background: var(--paper);
+}
+
 .arm::after {
   content: "";
   position: absolute;
-  width: 20px;
-  height: 28px;
-  background: #2b2b29;
-  bottom: -8px;
-  left: -6px;
+  width: 15px;
+  height: 24px;
+  left: -5px;
+  bottom: -5px;
+  background: #33312e;
 }
-.arm.playing { transform: rotate(5deg); }
 
-.now-playing { margin-top: 30px; }
-.small-label {
-  margin: 0 0 8px;
+.arm.playing { transform: rotate(7deg); }
+
+.music label {
+  margin-bottom: 8px;
   color: var(--muted);
-  font-size: 11px;
-  letter-spacing: .16em;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
 }
-.now-playing strong { display: block; font-size: 18px; }
-.now-playing span { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
 
-.player-controls { display: flex; gap: 10px; margin-top: 22px; }
-.player-controls button {
-  padding: 8px 14px;
-  border: 1px solid var(--line);
+.music input {
+  width: 100%;
+  padding: 9px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+}
+
+.controls {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.controls button,
+#saveBtn {
+  padding: 0;
+  border: 0;
   background: transparent;
   cursor: pointer;
 }
-.player-controls button:disabled { opacity: .35; cursor: default; }
-.hidden-player { width: 1px; height: 1px; overflow: hidden; }
 
-.section-head { margin-bottom: 36px; }
-.section-head h2 {
-  margin: 0 0 8px;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 36px;
-  font-weight: 400;
+.controls button {
+  color: #625f59;
+  font-size: 12px;
 }
-.section-head p { margin: 0; color: var(--muted); }
 
-.archive-list, .playlist-list { border-top: 1px solid var(--line); }
-.archive-row, .playlist-row {
-  display: grid;
-  grid-template-columns: 140px 1fr 90px;
-  gap: 20px;
-  align-items: center;
-  width: 100%;
-  padding: 18px 0;
-  border: 0;
+.controls button:disabled {
+  opacity: .3;
+  cursor: default;
+}
+
+.bottom-bar {
+  min-height: 44px;
+  padding: 0 2px;
   border-bottom: 1px solid var(--line);
-  background: none;
-  text-align: left;
 }
-.archive-row { cursor: pointer; }
-.archive-row span, .playlist-row span { color: var(--muted); font-size: 14px; }
-.archive-row strong, .playlist-row strong { font-weight: 500; }
 
-.archive-detail {
-  margin-top: 42px;
-  max-width: 760px;
-  padding-top: 26px;
-  border-top: 1px solid var(--ink);
+.bottom-bar p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
 }
-.archive-detail.empty { color: var(--muted); }
-.archive-detail h3 {
-  margin: 8px 0 24px;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 30px;
-  font-weight: 400;
+
+#saveBtn {
+  font-size: 13px;
 }
-.archive-detail p { white-space: pre-wrap; line-height: 1.9; }
-.archive-detail a, .playlist-row a { color: var(--ink); }
-.empty-line { padding: 24px 0; color: var(--muted); border-bottom: 1px solid var(--line); }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+#saveBtn:hover,
+.controls button:not(:disabled):hover {
+  text-decoration: underline;
+}
 
-@media (max-width: 820px) {
-  .topbar { height: auto; padding-top: 20px; padding-bottom: 16px; align-items: flex-start; }
-  nav { gap: 14px; }
-  main { padding-top: 24px; }
-  .diary-layout { grid-template-columns: 1fr; }
-  .diary-page { border-right: 0; border-bottom: 1px solid var(--line); padding: 32px 24px; }
-  .player-panel { padding: 32px 24px; }
-  .music-input { grid-template-columns: 1fr; gap: 4px; }
-  .archive-row, .playlist-row { grid-template-columns: 100px 1fr; }
-  .archive-row span:last-child, .playlist-row span:last-child { display: none; }
+.hidden-player {
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .diary {
+    width: min(100% - 20px, 620px);
+    margin: 18px auto;
+  }
+
+  .paper {
+    grid-template-columns: 1fr;
+  }
+
+  .writing {
+    padding: 30px 24px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  textarea {
+    min-height: 380px;
+  }
+
+  .music {
+    padding: 26px 24px 30px;
+  }
+
+  .turntable {
+    margin-top: 0;
+  }
 }

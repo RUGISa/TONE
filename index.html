@@ -7,80 +7,52 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <a class="logo" href="#" data-page="today">Mood Diary</a>
-    <nav>
-      <button class="nav-link active" data-page="today">오늘</button>
-      <button class="nav-link" data-page="archive">기록</button>
-      <button class="nav-link" data-page="playlist">플레이리스트</button>
-    </nav>
-  </header>
+  <main class="diary">
+    <header class="diary-head">
+      <h1>mood diary</h1>
+      <input id="dateInput" type="date" aria-label="기록 날짜">
+    </header>
 
-  <main>
-    <section class="page active" id="todayPage">
-      <div class="diary-layout">
-        <section class="diary-page">
-          <div class="date-row">
-            <p id="todayDate"></p>
-            <select id="moodInput" aria-label="오늘의 기분">
-              <option value="평온">평온</option>
-              <option value="행복">행복</option>
-              <option value="설렘">설렘</option>
-              <option value="피곤">피곤</option>
-              <option value="우울">우울</option>
-            </select>
-          </div>
+    <section class="paper">
+      <div class="writing">
+        <div class="meta">
+          <select id="moodInput" aria-label="오늘의 기분">
+            <option value="평온">평온</option>
+            <option value="행복">행복</option>
+            <option value="설렘">설렘</option>
+            <option value="피곤">피곤</option>
+            <option value="우울">우울</option>
+          </select>
+          <span id="savedMark"></span>
+        </div>
 
-          <input id="titleInput" class="title-input" type="text" maxlength="40" placeholder="오늘의 제목">
-          <textarea id="contentInput" placeholder="오늘을 기록하세요."></textarea>
-
-          <div class="music-input">
-            <label for="youtubeInput">오늘의 음악</label>
-            <input id="youtubeInput" type="url" placeholder="YouTube 링크 붙여넣기">
-          </div>
-
-          <button id="saveBtn" class="save-btn">저장</button>
-        </section>
-
-        <aside class="player-panel">
-          <div class="turntable">
-            <div class="record" id="record">
-              <div class="record-label">MD</div>
-            </div>
-            <div class="arm" id="arm"></div>
-          </div>
-
-          <div class="now-playing">
-            <p class="small-label">TODAY'S TRACK</p>
-            <strong id="trackTitle">등록된 음악 없음</strong>
-            <span id="trackDate"></span>
-          </div>
-
-          <div class="player-controls">
-            <button id="playBtn" disabled>재생</button>
-            <button id="stopBtn" disabled>정지</button>
-          </div>
-          <div id="youtubePlayer" class="hidden-player"></div>
-        </aside>
+        <input id="titleInput" class="title" type="text" maxlength="40" placeholder="제목">
+        <textarea id="contentInput" placeholder="오늘을 적어보세요."></textarea>
       </div>
+
+      <aside class="music">
+        <div class="turntable" aria-label="LP 플레이어">
+          <div class="record" id="record">
+            <div class="label"></div>
+          </div>
+          <div class="arm" id="arm"></div>
+        </div>
+
+        <label for="youtubeInput">music</label>
+        <input id="youtubeInput" type="url" placeholder="YouTube link">
+
+        <div class="controls">
+          <button id="playBtn" type="button" disabled>play</button>
+          <button id="stopBtn" type="button" disabled>stop</button>
+        </div>
+        <div id="youtubePlayer" class="hidden-player"></div>
+      </aside>
     </section>
 
-    <section class="page" id="archivePage">
-      <div class="section-head">
-        <h2>기록</h2>
-        <p>날짜를 누르면 그날의 일기를 볼 수 있습니다.</p>
-      </div>
-      <div id="archiveList" class="archive-list"></div>
-      <article id="archiveDetail" class="archive-detail empty">아직 선택한 기록이 없습니다.</article>
-    </section>
-
-    <section class="page" id="playlistPage">
-      <div class="section-head">
-        <h2>플레이리스트</h2>
-        <p>일기와 함께 남긴 음악입니다.</p>
-      </div>
-      <div id="playlistList" class="playlist-list"></div>
-    </section>
+    <footer class="bottom-bar">
+      <p id="entryCount"></p>
+      <button id="saveBtn" type="button">save</button>
+    </footer>
   </main>
 
   <script src="script.js"></script>
