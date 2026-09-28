@@ -7,162 +7,81 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <div class="brand">
-        <span class="eyebrow">MOOD DIARY</span>
-        <h1>나만의 플레이리스트<br>기반 무드 다이어리</h1>
-        <p>하루의 감정을 한 곡과 함께 기록합니다.</p>
+  <header class="topbar">
+    <a class="logo" href="#" data-page="today">Mood Diary</a>
+    <nav>
+      <button class="nav-link active" data-page="today">오늘</button>
+      <button class="nav-link" data-page="archive">기록</button>
+      <button class="nav-link" data-page="playlist">플레이리스트</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page active" id="todayPage">
+      <div class="diary-layout">
+        <section class="diary-page">
+          <div class="date-row">
+            <p id="todayDate"></p>
+            <select id="moodInput" aria-label="오늘의 기분">
+              <option value="평온">평온</option>
+              <option value="행복">행복</option>
+              <option value="설렘">설렘</option>
+              <option value="피곤">피곤</option>
+              <option value="우울">우울</option>
+            </select>
+          </div>
+
+          <input id="titleInput" class="title-input" type="text" maxlength="40" placeholder="오늘의 제목">
+          <textarea id="contentInput" placeholder="오늘을 기록하세요."></textarea>
+
+          <div class="music-input">
+            <label for="youtubeInput">오늘의 음악</label>
+            <input id="youtubeInput" type="url" placeholder="YouTube 링크 붙여넣기">
+          </div>
+
+          <button id="saveBtn" class="save-btn">저장</button>
+        </section>
+
+        <aside class="player-panel">
+          <div class="turntable">
+            <div class="record" id="record">
+              <div class="record-label">MD</div>
+            </div>
+            <div class="arm" id="arm"></div>
+          </div>
+
+          <div class="now-playing">
+            <p class="small-label">TODAY'S TRACK</p>
+            <strong id="trackTitle">등록된 음악 없음</strong>
+            <span id="trackDate"></span>
+          </div>
+
+          <div class="player-controls">
+            <button id="playBtn" disabled>재생</button>
+            <button id="stopBtn" disabled>정지</button>
+          </div>
+          <div id="youtubePlayer" class="hidden-player"></div>
+        </aside>
       </div>
+    </section>
 
-      <nav class="nav">
-        <button class="nav-btn active" data-view="home">오늘</button>
-        <button class="nav-btn" data-view="write">기록하기</button>
-        <button class="nav-btn" data-view="calendar">달력</button>
-        <button class="nav-btn" data-view="playlist">플레이리스트</button>
-      </nav>
-
-      <div class="sidebar-note">
-        <span id="todayLabel"></span>
-        <strong>오늘의 하루를 남겨보세요.</strong>
+    <section class="page" id="archivePage">
+      <div class="section-head">
+        <h2>기록</h2>
+        <p>날짜를 누르면 그날의 일기를 볼 수 있습니다.</p>
       </div>
-    </aside>
+      <div id="archiveList" class="archive-list"></div>
+      <article id="archiveDetail" class="archive-detail empty">아직 선택한 기록이 없습니다.</article>
+    </section>
 
-    <main class="content">
-      <section class="view active" id="homeView">
-        <div class="page-head">
-          <div>
-            <span class="eyebrow">TODAY</span>
-            <h2 id="todayTitle">오늘의 기록</h2>
-          </div>
-          <button class="primary-btn" data-go="write">오늘 기록하기</button>
-        </div>
-
-        <div class="home-grid">
-          <article class="paper-card recent-card">
-            <div class="paper-meta">
-              <span id="recentDate">아직 기록이 없습니다.</span>
-              <span id="recentMood"></span>
-            </div>
-            <h3 id="recentTitle">첫 번째 일기를 남겨보세요.</h3>
-            <p id="recentContent">오늘의 감정과 함께 듣고 싶은 노래를 기록할 수 있어요.</p>
-            <button class="text-btn" data-go="write">기록 시작하기 →</button>
-          </article>
-
-          <article class="player-card">
-            <div class="player-top">
-              <span class="eyebrow">TODAY'S MUSIC</span>
-              <span id="playerStatus">STOPPED</span>
-            </div>
-
-            <div class="turntable">
-              <div class="record" id="record">
-                <div class="record-ring"></div>
-                <div class="record-label" id="recordLabel">MOOD</div>
-              </div>
-              <div class="tonearm" id="tonearm"></div>
-            </div>
-
-            <div class="track-info">
-              <strong id="playerTrack">저장된 음악이 없습니다.</strong>
-              <span id="playerDate">일기를 먼저 작성해보세요.</span>
-            </div>
-
-            <div class="player-actions">
-              <button id="playBtn" class="round-btn" disabled>▶</button>
-              <button id="stopBtn" class="round-btn" disabled>■</button>
-            </div>
-
-            <div id="youtubePlayer" class="youtube-wrap"></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="writeView">
-        <div class="page-head">
-          <div>
-            <span class="eyebrow">WRITE</span>
-            <h2>오늘의 기록</h2>
-          </div>
-          <span class="date-chip" id="writeDateLabel"></span>
-        </div>
-
-        <form id="diaryForm" class="paper-card form-card">
-          <label>
-            제목
-            <input id="titleInput" type="text" maxlength="40" placeholder="오늘 하루를 한 문장으로 적어보세요" required>
-          </label>
-
-          <fieldset>
-            <legend>오늘의 기분</legend>
-            <div class="mood-options">
-              <label><input type="radio" name="mood" value="평온" checked><span>평온</span></label>
-              <label><input type="radio" name="mood" value="행복"><span>행복</span></label>
-              <label><input type="radio" name="mood" value="우울"><span>우울</span></label>
-              <label><input type="radio" name="mood" value="설렘"><span>설렘</span></label>
-              <label><input type="radio" name="mood" value="피곤"><span>피곤</span></label>
-            </div>
-          </fieldset>
-
-          <label>
-            오늘의 기록
-            <textarea id="contentInput" rows="10" placeholder="오늘 있었던 일이나 지금의 기분을 천천히 적어보세요." required></textarea>
-          </label>
-
-          <label>
-            오늘의 음악
-            <input id="youtubeInput" type="url" placeholder="https://www.youtube.com/watch?v=...">
-            <small>유튜브 링크를 붙여 넣으면 일기와 함께 음악을 저장합니다.</small>
-          </label>
-
-          <div class="form-row">
-            <button type="button" id="loadTodayBtn" class="secondary-btn">오늘 기록 불러오기</button>
-            <button type="submit" class="primary-btn">오늘 기록 저장하기</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="view" id="calendarView">
-        <div class="page-head">
-          <div>
-            <span class="eyebrow">DIARY</span>
-            <h2>기록 달력</h2>
-          </div>
-          <div class="calendar-controls">
-            <button id="prevMonth" class="round-btn">←</button>
-            <span id="calendarTitle"></span>
-            <button id="nextMonth" class="round-btn">→</button>
-          </div>
-        </div>
-
-        <div class="calendar-layout">
-          <div class="paper-card calendar-card">
-            <div class="weekdays">
-              <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-            </div>
-            <div id="calendarGrid" class="calendar-grid"></div>
-          </div>
-
-          <article class="paper-card preview-card" id="calendarPreview">
-            <span class="eyebrow">SELECTED DAY</span>
-            <h3>날짜를 선택해보세요.</h3>
-            <p>기록이 있는 날짜를 누르면 일기 내용과 음악을 확인할 수 있습니다.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="playlistView">
-        <div class="page-head">
-          <div>
-            <span class="eyebrow">PLAYLIST</span>
-            <h2>나의 플레이리스트</h2>
-          </div>
-        </div>
-
-        <div id="playlistList" class="playlist-list"></div>
-      </section>
-    </main>
-  </div>
+    <section class="page" id="playlistPage">
+      <div class="section-head">
+        <h2>플레이리스트</h2>
+        <p>일기와 함께 남긴 음악입니다.</p>
+      </div>
+      <div id="playlistList" class="playlist-list"></div>
+    </section>
+  </main>
 
   <script src="script.js"></script>
 </body>
