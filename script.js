@@ -22,6 +22,11 @@ let monthEntries = {};
 let currentVideoId = null;
 let playTimer = null;
 let isPlaying = false;
+let shouldPlay = false;
+let ytPlayer = null;
+let ytReady = false;
+let ytApiReady = false;
+let resumeTimer = null;
 const now = new Date();
 let calendarYear = now.getFullYear();
 let calendarMonth = now.getMonth();
@@ -158,9 +163,157 @@ function setArtwork(id){
   const list=[`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,`https://i.ytimg.com/vi/${id}/hq720.jpg`,`https://i.ytimg.com/vi/${id}/sddefault.jpg`,`https://i.ytimg.com/vi/${id}/mqdefault.jpg`];
   const go=i=>{if(i>=list.length){el.recordPhoto.style.backgroundImage='none';return;}const img=new Image();img.onload=()=>{if(img.naturalWidth>200)el.recordPhoto.style.backgroundImage=`url("${list[i]}")`;else go(i+1)};img.onerror=()=>go(i+1);img.src=list[i];}; go(0);
 }
-function updateMusic(){currentVideoId=extractYouTubeId(el.youtubeInput.value);stopMusic(true);setArtwork(currentVideoId);el.playBtn.disabled=!currentVideoId;el.stopBtn.disabled=!currentVideoId;el.playerState.textContent=currentVideoId?'READY':'NO TRACK';}
-function playMusic(){if(!currentVideoId||isPlaying||playTimer)return;el.arm.classList.add('playing');el.playerState.textContent='LOWERING';el.playBtn.disabled=true;playTimer=setTimeout(()=>{playTimer=null;el.youtubePlayer.innerHTML=`<iframe width="1" height="1" src="https://www.youtube.com/embed/${currentVideoId}?autoplay=1&playsinline=1" allow="autoplay; encrypted-media"></iframe>`;el.record.classList.add('playing');isPlaying=true;el.playerState.textContent='PLAYING';el.stopBtn.disabled=false;},650);}
-function stopMusic(immediate=false){if(playTimer){clearTimeout(playTimer);playTimer=null;}el.youtubePlayer.innerHTML='';el.record.classList.remove('playing');isPlaying=false;if(immediate)el.arm.classList.remove('playing');else setTimeout(()=>el.arm.classList.remove('playing'),80);if(currentVideoId){el.playBtn.disabled=false;el.stopBtn.disabled=false;el.playerState.textContent=immediate?'READY':'STOPPED';}else{el.playBtn.disabled=true;el.stopBtn.disabled=true;el.playerState.textContent='NO TRACK';}}
+window.onYouTubeIframeAPIReady = function(){
+  ytApiReady = true;
+};
+
+function destroyResumeTimer(){
+  if(resumeTimer){clearTimeout(resumeTimer);resumeTimer=null;}
+}
+
+function ensureYouTubePlayer(){
+  return new Promise((resolve,reject)=>{
+    if(ytPlayer && ytReady){ resolve(ytPlayer); return; }
+    const started=Date.now();
+    const wait=()=>{
+      if(window.YT && YT.Player){
+        ytApiReady=true;
+        if(ytPlayer){
+          if(ytReady) resolve(ytPlayer);
+          else setTimeout(wait,40);
+          return;
+        }
+        ytPlayer=new YT.Player('youtubePlayer',{
+          width:'1', height:'1',
+          playerVars:{playsinline:1,controls:0,rel:0,disablekb:1},
+          events:{
+            onReady:(e)=>{ytReady=true;resolve(e.target);},
+            onStateChange:onYouTubeStateChange,
+            onError:onYouTubeError
+          }
+        });
+        return;
+      }
+      if(Date.now()-started>8000){ reject(new Error('YouTube API timeout')); return; }
+      setTimeout(wait,60);
+    };
+    wait();
+  });
+}
+
+function onYouTubeStateChange(event){
+  if(!window.YT) return;
+  const state=event.data;
+  if(state===YT.PlayerState.PLAYING){
+    isPlaying=true;
+    destroyResumeTimer();
+    el.record.classList.add('playing');
+    el.arm.classList.add('playing');
+    el.playerState.textContent='PLAYING';
+    el.playBtn.disabled=true;
+    el.stopBtn.disabled=false;
+    return;
+  }
+  if(state===YT.PlayerState.BUFFERING){
+    if(shouldPlay) el.playerState.textContent='BUFFERING';
+    return;
+  }
+  if(state===YT.PlayerState.PAUSED && shouldPlay){
+    el.playerState.textContent='RESUMING';
+    destroyResumeTimer();
+    resumeTimer=setTimeout(()=>{
+      if(shouldPlay && ytPlayer && ytReady){
+        try{ytPlayer.playVideo();}catch{}
+      }
+    },320);
+    return;
+  }
+  if(state===YT.PlayerState.ENDED){
+    if(shouldPlay){
+      try{ytPlayer.seekTo(0,true);ytPlayer.playVideo();}catch{}
+    }
+    return;
+  }
+  if(state===YT.PlayerState.CUED && shouldPlay){
+    try{ytPlayer.playVideo();}catch{}
+  }
+}
+
+function onYouTubeError(){
+  shouldPlay=false;
+  isPlaying=false;
+  destroyResumeTimer();
+  el.record.classList.remove('playing');
+  el.arm.classList.remove('playing');
+  el.playerState.textContent='PLAY ERROR';
+  el.playBtn.disabled=!currentVideoId;
+  el.stopBtn.disabled=true;
+}
+
+function updateMusic(){
+  currentVideoId=extractYouTubeId(el.youtubeInput.value);
+  stopMusic(true);
+  setArtwork(currentVideoId);
+  el.playBtn.disabled=!currentVideoId;
+  el.stopBtn.disabled=true;
+  el.playerState.textContent=currentVideoId?'READY':'NO TRACK';
+}
+
+async function playMusic(){
+  if(!currentVideoId||shouldPlay||playTimer)return;
+  shouldPlay=true;
+  destroyResumeTimer();
+  el.arm.classList.add('cueing');
+  el.playerState.textContent='CUEING';
+  el.playBtn.disabled=true;
+  el.stopBtn.disabled=false;
+  try{
+    const player=await ensureYouTubePlayer();
+    if(!shouldPlay)return;
+    player.cueVideoById(currentVideoId);
+    playTimer=setTimeout(()=>{
+      playTimer=null;
+      if(!shouldPlay)return;
+      el.arm.classList.remove('cueing');
+      el.arm.classList.add('playing');
+      el.playerState.textContent='LOWERING';
+      setTimeout(()=>{
+        if(!shouldPlay)return;
+        try{player.playVideo();}catch{onYouTubeError();}
+      },170);
+    },520);
+  }catch{
+    onYouTubeError();
+  }
+}
+
+function stopMusic(immediate=false){
+  shouldPlay=false;
+  destroyResumeTimer();
+  if(playTimer){clearTimeout(playTimer);playTimer=null;}
+  if(ytPlayer && ytReady){
+    try{ytPlayer.stopVideo();}catch{}
+  }
+  el.record.classList.remove('playing');
+  isPlaying=false;
+  el.arm.classList.remove('cueing');
+  if(immediate){
+    el.arm.classList.remove('playing');
+  }else{
+    el.playerState.textContent='LIFTING';
+    setTimeout(()=>el.arm.classList.remove('playing'),140);
+  }
+  if(currentVideoId){
+    el.playBtn.disabled=false;
+    el.stopBtn.disabled=true;
+    if(immediate)el.playerState.textContent='READY';
+    else setTimeout(()=>{if(!shouldPlay)el.playerState.textContent='STOPPED';},520);
+  }else{
+    el.playBtn.disabled=true;
+    el.stopBtn.disabled=true;
+    el.playerState.textContent='NO TRACK';
+  }
+}
 
 async function openFriends(){ showView('friendsView'); selectedFriend=null; el.conversation.hidden=true;el.conversationEmpty.hidden=false; await loadFriends(); }
 async function loadFriends(){
