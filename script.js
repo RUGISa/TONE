@@ -24,9 +24,12 @@ const recordPhoto = document.getElementById("recordPhoto");
 const arm = document.getElementById("arm");
 const youtubePlayer = document.getElementById("youtubePlayer");
 const savedMark = document.getElementById("savedMark");
+const playerState = document.getElementById("playerState");
 
 let selectedDate = "";
 let currentVideoId = null;
+let playTimer = null;
+let isPlaying = false;
 
 const now = new Date();
 let calendarYear = now.getFullYear();
@@ -56,19 +59,21 @@ function saveEntries(entries) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
 }
 
-function extractYouTubeId(url) {
-  if (!url) return null;
+function extractYouTubeId(rawUrl) {
+  if (!rawUrl) return null;
 
-  const patterns = [
-    /youtu\.be\/([^?&]+)/,
-    /youtube\.com\/watch\?v=([^?&]+)/,
-    /youtube\.com\/embed\/([^?&]+)/,
-    /youtube\.com\/shorts\/([^?&]+)/
-  ];
+  try {
+    const url = new URL(rawUrl.trim());
+    const host = url.hostname.replace(/^www\./, "");
 
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
+    if (host === "youtu.be") return url.pathname.split("/").filter(Boolean)[0] || null;
+    if (host.endsWith("youtube.com")) {
+      if (url.pathname === "/watch") return url.searchParams.get("v");
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (["embed", "shorts", "live"].includes(parts[0])) return parts[1] || null;
+    }
+  } catch {
+    return null;
   }
 
   return null;
@@ -86,22 +91,18 @@ function renderCalendar() {
   calendarGrid.innerHTML = "";
   calendarGrid.style.setProperty("--weeks", weekCount);
 
-  // 이번 달이 시작하기 전의 빈 칸
   for (let i = 0; i < firstDayIndex; i++) {
     const blank = document.createElement("div");
     blank.className = "calendar-blank";
     calendarGrid.appendChild(blank);
   }
 
-  // 이번 달 날짜만 표시
   for (let day = 1; day <= daysInMonth; day++) {
     const dateString = makeDateString(calendarYear, calendarMonth, day);
     const entry = entries[dateString];
-
     const button = document.createElement("button");
     button.type = "button";
     button.className = "calendar-day";
-
     if (dateString === todayString) button.classList.add("today");
 
     const number = document.createElement("span");
@@ -133,7 +134,6 @@ function renderCalendar() {
     calendarGrid.appendChild(button);
   }
 
-  // 마지막 주의 남는 칸
   const usedCells = firstDayIndex + daysInMonth;
   const blankEnd = weekCount * 7 - usedCells;
   for (let i = 0; i < blankEnd; i++) {
@@ -147,7 +147,6 @@ function setDiaryDate(dateString) {
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
   const weekday = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][date.getDay()];
-
   dateTitle.textContent = `${year}. ${pad(month)}. ${pad(day)}`;
   weekdayTitle.textContent = weekday;
 }
@@ -156,18 +155,15 @@ function openDiary(dateString) {
   selectedDate = dateString;
   setDiaryDate(dateString);
   loadEntry();
-
   calendarView.hidden = true;
   diaryView.hidden = false;
-  window.scrollTo(0, 0);
 }
 
 function showCalendar() {
-  stopMusic();
+  stopMusic(true);
   diaryView.hidden = true;
   calendarView.hidden = false;
   renderCalendar();
-  window.scrollTo(0, 0);
 }
 
 function clearForm() {
@@ -180,7 +176,7 @@ function clearForm() {
 }
 
 function loadEntry() {
-  stopMusic();
+  stopMusic(true);
   const entry = getEntries()[selectedDate];
 
   if (!entry) {
@@ -219,46 +215,112 @@ function saveEntry() {
 
 function deleteEntry() {
   if (!selectedDate) return;
-
   const entries = getEntries();
   delete entries[selectedDate];
   saveEntries(entries);
   clearForm();
 }
 
+function setRecordArtwork(videoId) {
+  if (!videoId) {
+    recordPhoto.style.backgroundImage = "none";
+    return;
+  }
+
+  const candidates = [
+    `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+    `https://i.ytimg.com/vi/${videoId}/hq720.jpg`,
+    `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`,
+    `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`
+  ];
+
+  const tryNext = (index) => {
+    if (index >= candidates.length) {
+      recordPhoto.style.backgroundImage = "none";
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth > 200 && img.naturalHeight > 120) {
+        recordPhoto.style.backgroundImage = `url("${candidates[index]}")`;
+      } else {
+        tryNext(index + 1);
+      }
+    };
+    img.onerror = () => tryNext(index + 1);
+    img.src = candidates[index];
+  };
+
+  tryNext(0);
+}
+
 function updateMusic() {
   currentVideoId = extractYouTubeId(youtubeInput.value.trim());
   playBtn.disabled = !currentVideoId;
   stopBtn.disabled = !currentVideoId;
-  stopMusic();
-
-  if (currentVideoId) {
-    recordPhoto.style.backgroundImage = `url("https://i.ytimg.com/vi/${currentVideoId}/mqdefault.jpg")`;
-  } else {
-    recordPhoto.style.backgroundImage = "none";
-  }
+  stopMusic(true);
+  setRecordArtwork(currentVideoId);
+  playerState.textContent = currentVideoId ? "READY" : "NO TRACK";
 }
 
-function playMusic() {
+function mountPlayer() {
   if (!currentVideoId) return;
 
   youtubePlayer.innerHTML = `
     <iframe
       width="1"
       height="1"
-      src="https://www.youtube.com/embed/${currentVideoId}?autoplay=1"
+      src="https://www.youtube.com/embed/${currentVideoId}?autoplay=1&playsinline=1"
       title="YouTube player"
-      allow="autoplay; encrypted-media">
+      allow="autoplay; encrypted-media"
+      referrerpolicy="strict-origin-when-cross-origin">
     </iframe>`;
-
-  record.classList.add("playing");
-  arm.classList.add("playing");
 }
 
-function stopMusic() {
+function playMusic() {
+  if (!currentVideoId || isPlaying || playTimer) return;
+
+  playerState.textContent = "LOWERING";
+  arm.classList.add("playing");
+  playBtn.disabled = true;
+
+  playTimer = window.setTimeout(() => {
+    playTimer = null;
+    mountPlayer();
+    record.classList.add("playing");
+    isPlaying = true;
+    playerState.textContent = "PLAYING";
+    stopBtn.disabled = false;
+  }, 600);
+}
+
+function stopMusic(immediate = false) {
+  if (playTimer) {
+    clearTimeout(playTimer);
+    playTimer = null;
+  }
+
   youtubePlayer.innerHTML = "";
   record.classList.remove("playing");
-  arm.classList.remove("playing");
+  isPlaying = false;
+
+  if (immediate) {
+    arm.classList.remove("playing");
+  } else {
+    playerState.textContent = "LIFTING";
+    window.setTimeout(() => arm.classList.remove("playing"), 70);
+  }
+
+  if (currentVideoId) {
+    playerState.textContent = immediate ? "READY" : "STOPPED";
+    playBtn.disabled = false;
+    stopBtn.disabled = false;
+  } else {
+    playerState.textContent = "NO TRACK";
+    playBtn.disabled = true;
+    stopBtn.disabled = true;
+  }
 }
 
 prevMonth.addEventListener("click", () => {
@@ -290,10 +352,10 @@ backBtn.addEventListener("click", showCalendar);
 saveBtn.addEventListener("click", saveEntry);
 deleteBtn.addEventListener("click", deleteEntry);
 playBtn.addEventListener("click", playMusic);
-stopBtn.addEventListener("click", stopMusic);
+stopBtn.addEventListener("click", () => stopMusic(false));
 youtubeInput.addEventListener("input", updateMusic);
 
-[titleInput, contentInput, moodInput, youtubeInput].forEach(element => {
+[titleInput, contentInput, moodInput, youtubeInput].forEach((element) => {
   element.addEventListener("input", () => {
     savedMark.textContent = "";
   });

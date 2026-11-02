@@ -8,14 +8,12 @@
 </head>
 <body>
   <main class="app">
-    <!-- 첫 화면 : 캘린더 -->
     <section id="calendarView" class="calendar-page">
       <header class="calendar-header">
         <div>
           <p class="brand">MOOD DIARY</p>
-          <h1 id="monthTitle">2026. 09</h1>
+          <h1 id="monthTitle">2026. 11</h1>
         </div>
-
         <nav class="calendar-nav" aria-label="달력 이동">
           <button id="prevMonth" type="button" aria-label="이전 달">←</button>
           <button id="todayBtn" type="button">TODAY</button>
@@ -25,22 +23,16 @@
 
       <div class="calendar-shell">
         <div class="week-row" aria-hidden="true">
-          <span class="sun">SUN</span>
-          <span>MON</span>
-          <span>TUE</span>
-          <span>WED</span>
-          <span>THU</span>
-          <span>FRI</span>
-          <span class="sat">SAT</span>
+          <span class="sun">SUN</span><span>MON</span><span>TUE</span><span>WED</span>
+          <span>THU</span><span>FRI</span><span class="sat">SAT</span>
         </div>
         <div id="calendarGrid" class="calendar-grid"></div>
       </div>
     </section>
 
-    <!-- 날짜를 선택한 뒤에만 보이는 다이어리 -->
     <section id="diaryView" class="diary-page" hidden>
       <header class="diary-header">
-        <button id="backBtn" class="back-btn" type="button">←</button>
+        <button id="backBtn" class="back-btn" type="button" aria-label="달력으로 돌아가기">←</button>
         <div class="selected-date">
           <strong id="dateTitle"></strong>
           <span id="weekdayTitle"></span>
@@ -60,33 +52,47 @@
             </select>
             <span id="savedMark"></span>
           </div>
-
           <input id="titleInput" class="diary-title" type="text" maxlength="40" placeholder="제목">
           <textarea id="contentInput" placeholder="오늘을 적어보세요."></textarea>
+          <button id="deleteBtn" class="delete-btn" type="button">DELETE</button>
         </section>
 
         <aside class="music-area">
-          <div class="turntable" aria-label="LP 플레이어">
-            <div class="record" id="record">
-              <div class="record-photo" id="recordPhoto"></div>
-              <div class="record-hole"></div>
+          <div class="deck" aria-label="턴테이블">
+            <div class="deck-brand">tone</div>
+            <div class="record-wrap">
+              <div class="record" id="record">
+                <div class="record-photo" id="recordPhoto"></div>
+                <div class="record-grooves"></div>
+                <div class="record-label-ring"></div>
+                <div class="record-hole"></div>
+              </div>
+              <div class="spindle"></div>
             </div>
-            <div class="arm" id="arm"></div>
+
+            <div class="tonearm" id="arm" aria-hidden="true">
+              <div class="arm-base"></div>
+              <div class="arm-tube"></div>
+              <div class="headshell"></div>
+              <div class="stylus"></div>
+            </div>
+
+            <div class="deck-control-dot"></div>
           </div>
 
           <div class="music-form">
             <input id="youtubeInput" type="url" placeholder="YouTube link" aria-label="유튜브 링크">
             <div class="music-controls">
               <button id="playBtn" type="button" disabled>PLAY</button>
+              <span class="control-divider">/</span>
               <button id="stopBtn" type="button" disabled>STOP</button>
+              <span id="playerState" class="player-state">READY</span>
             </div>
           </div>
 
           <div id="youtubePlayer" class="hidden-player"></div>
         </aside>
       </div>
-
-      <button id="deleteBtn" class="delete-btn" type="button">DELETE</button>
     </section>
   </main>
 
