@@ -19,6 +19,8 @@ let playerReady = false;
 let wantsPlayback = false;
 let armTimer = 0;
 let artworkToken = 0;
+let lastPlaybackTime = 0;
+let stalledChecks = 0;
 
 const today = new Date();
 let year = today.getFullYear();
@@ -174,8 +176,8 @@ function initPlayer() {
   if (player || !window.YT?.Player) return;
 
   player = new YT.Player("youtubePlayer", {
-    width: "1",
-    height: "1",
+    width: "200",
+    height: "200",
     playerVars: { controls: 0, playsinline: 1, rel: 0, origin: location.origin },
     events: {
       onReady(event) {
@@ -185,17 +187,20 @@ function initPlayer() {
         if (videoId) ui.playerState.textContent = "READY";
       },
       onStateChange(event) {
-        if (!window.YT) return;
+        if (!window.YT || !wantsPlayback) return;
         const state = event.data;
 
-        if (state === YT.PlayerState.PLAYING && wantsPlayback) {
+        if (state === YT.PlayerState.PLAYING) {
+          stalledChecks = 0;
+          lastPlaybackTime = safeCurrentTime();
           ui.record.classList.add("playing");
           ui.playerState.textContent = "PLAYING";
-        } else if (state === YT.PlayerState.BUFFERING && wantsPlayback) {
+        } else if (state === YT.PlayerState.BUFFERING) {
           ui.playerState.textContent = "BUFFERING";
-        } else if (state === YT.PlayerState.ENDED && wantsPlayback) {
-          player.seekTo(0, true);
-          player.playVideo();
+        } else if (state === YT.PlayerState.ENDED) {
+          restartFrom(0);
+        } else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.CUED || state === YT.PlayerState.UNSTARTED) {
+          resumePlayback();
         }
       },
       onError() {
@@ -209,10 +214,30 @@ function initPlayer() {
 window.onYouTubeIframeAPIReady = initPlayer;
 if (window.YT?.Player) initPlayer();
 
+function safeCurrentTime() {
+  try { return Number(player?.getCurrentTime?.()) || 0; }
+  catch { return 0; }
+}
+
+function resumePlayback() {
+  if (!wantsPlayback || !playerReady || !player) return;
+  try { player.playVideo(); } catch {}
+}
+
+function restartFrom(seconds) {
+  if (!wantsPlayback || !playerReady || !player || !videoId) return;
+  try {
+    player.loadVideoById({ videoId, startSeconds: Math.max(0, seconds || 0) });
+    player.playVideo();
+  } catch {}
+}
+
 function playMusic() {
   if (!videoId || !playerReady || wantsPlayback) return;
 
   wantsPlayback = true;
+  stalledChecks = 0;
+  lastPlaybackTime = 0;
   ui.arm.classList.add("cueing");
   ui.playerState.textContent = "CUEING";
   updateButtons();
@@ -234,6 +259,8 @@ function playMusic() {
 
 function stopMusic(immediate = false) {
   wantsPlayback = false;
+  stalledChecks = 0;
+  lastPlaybackTime = 0;
   clearTimeout(armTimer);
   armTimer = 0;
 
@@ -255,14 +282,43 @@ function stopMusic(immediate = false) {
   updateButtons();
 }
 
-// 간단한 재생 감시: 네트워크 버퍼링은 건드리지 않고, 의도치 않은 PAUSED만 복구한다.
+// 재생 감시: 상태뿐 아니라 실제 재생 시간이 멈췄는지도 확인한다.
 setInterval(() => {
   if (!wantsPlayback || !playerReady || !player || !window.YT) return;
-  const state = player.getPlayerState();
-  if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.CUED) {
-    try { player.playVideo(); } catch {}
+
+  let state;
+  try { state = player.getPlayerState(); } catch { return; }
+
+  if (state === YT.PlayerState.ENDED) {
+    restartFrom(0);
+    return;
   }
-}, 2500);
+
+  if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.CUED || state === YT.PlayerState.UNSTARTED) {
+    resumePlayback();
+    return;
+  }
+
+  const current = safeCurrentTime();
+  const advancing = current > lastPlaybackTime + 0.2;
+
+  if (state === YT.PlayerState.PLAYING && advancing) {
+    stalledChecks = 0;
+    lastPlaybackTime = current;
+    return;
+  }
+
+  // PLAYING/BUFFERING 상태인데 시간이 5초 이상 그대로면 같은 위치에서 플레이어를 복구한다.
+  if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
+    stalledChecks += 1;
+    if (advancing) lastPlaybackTime = current;
+
+    if (stalledChecks >= 5) {
+      stalledChecks = 0;
+      restartFrom(Math.max(current, lastPlaybackTime));
+    }
+  }
+}, 1000);
 
 ui.calendarGrid.addEventListener("click", (event) => {
   const day = event.target.closest("[data-date]");

@@ -720,11 +720,13 @@ textarea::-webkit-scrollbar-thumb { background: rgba(80,53,37,.14); border-radiu
 }
 
 .hidden-player {
-  position: absolute;
-  width: 1px;
-  height: 1px;
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 200px;
+  height: 200px;
   overflow: hidden;
-  opacity: 0;
+  opacity: .01;
   pointer-events: none;
 }
 
